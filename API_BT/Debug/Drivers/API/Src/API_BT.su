@@ -1,0 +1,5 @@
+../Drivers/API/Src/API_BT.c:26:6:MX_USART2_UART_Init	8	static
+../Drivers/API/Src/API_BT.c:51:6:BT_TX	16	static
+../Drivers/API/Src/API_BT.c:62:6:BT_TX_IT	16	static
+../Drivers/API/Src/API_BT.c:72:6:HAL_UART_TxCpltCallback	16	static
+../Drivers/API/Src/API_BT.c:86:6:BT_RX	16	static
