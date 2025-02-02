@@ -1,0 +1,7 @@
+../Drivers/API/Src/API_Teclado4x3.c:49:6:keypad_init	40	static
+../Drivers/API/Src/API_Teclado4x3.c:84:13:buffer_add	16	static
+../Drivers/API/Src/API_Teclado4x3.c:93:6:buffer_get	16	static
+../Drivers/API/Src/API_Teclado4x3.c:101:6:keypad_key_pressed	16	static
+../Drivers/API/Src/API_Teclado4x3.c:116:13:scan_keypad	16	static
+../Drivers/API/Src/API_Teclado4x3.c:130:6:HAL_GPIO_EXTI_Callback	16	static
+../Drivers/API/Src/API_Teclado4x3.c:137:6:keypad_get_key	8	static
