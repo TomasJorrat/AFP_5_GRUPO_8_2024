@@ -100,7 +100,7 @@ int main(void)
     /* USER CODE END WHILE */
 	  HAL_GPIO_TogglePin(GPIOB, LD1_Pin);
 	  HAL_Delay(200);
-	  HAL_UART_Transmit(&huart2, "12", 2, HAL_MAX_DELAY);
+	  HAL_UART_Transmit(&huart2,(const uint8_t *)"12", 2, HAL_MAX_DELAY);
     /* USER CODE BEGIN 3 */
 
   }

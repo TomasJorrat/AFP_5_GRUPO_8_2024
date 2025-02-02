@@ -7,6 +7,7 @@
 /*Includes*/
 #include "main.h"
 #include "API_BT.h"
+#include <string.h>
 
 /*Declaracion de variables*/
 //msj_t Mx_TX[20]="Alarma Activada \n\r", Mx_RX[20];
@@ -48,9 +49,12 @@ void MX_USART2_UART_Init(void)
  * @retval void
 
 */
-void BT_TX(msj_t Mx_TX)
+/*void BT_TX(msj_t Mx_TX)
 {
 	HAL_UART_Transmit(&huart2, Mx_TX, sizeof(Mx_TX), HAL_MAX_DELAY);
+}*/
+void BT_TX(const msj_t *Mx_TX){ // Cambiar para recibir un puntero
+HAL_UART_Transmit(&huart2, Mx_TX, strlen((const char *)Mx_TX), HAL_MAX_DELAY);
 }
 
 
@@ -59,10 +63,15 @@ void BT_TX(msj_t Mx_TX)
  * @param msj_t Mx_TX (cadena de caracteres)
  * @retval void
 */
-void BT_TX_IT(msj_t Mx_TX)
+/*void BT_TX_IT(msj_t Mx_TX)
 {
-	HAL_UART_Transmit_IT(&huart2, Mx_TX, sizeof(Mx_TX)-1);
+	HAL_UART_Transmit_IT(&huart2, Mx_TX, strlen((const char *)(Mx_TX)-1));
+}*/
+void BT_TX_IT(const msj_t *Mx_TX)
+{
+  HAL_UART_Transmit_IT(&huart2, Mx_TX, strlen((const char *)Mx_TX));
 }
+
 
 /*
  * @brief Cuando se completa la transmision se puede realizar una tarea determinada
@@ -83,7 +92,7 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
  * @param msj_t Mx_RX (cadena de caracteres)
  * @retval void
 */
-void BT_RX(msj_t Mx_RX)
+void BT_RX(msj_t *Mx_RX)
 {
 	HAL_UART_Receive(&huart2, Mx_RX, sizeof(Mx_RX), HAL_MAX_DELAY);
 }
