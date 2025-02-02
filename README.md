@@ -1,5 +1,6 @@
 # AFP_5_GRUPO_8_2024
-Actividad de Formacion Practica N°5 - Proyecto Final /n
+Actividad de Formacion Practica N°5 - Proyecto Final
+
 Repositorio para el proyecto final de la materia Técnicas Digitales II UTN-FRT. 
 
 El proyecto consiste en una aplicacion para sistema de alarma domestico la cual utiliza una placa de desarrollo STM32-F413ZH.
