@@ -104,7 +104,6 @@ int main(void)
 	  HAL_GPIO_TogglePin(GPIOB, LD1_Pin);
 	  HAL_Delay(200);
 	  BT_TX(mensaje);
-	 // HAL_UART_Transmit(&huart2, "12", 2, HAL_MAX_DELAY);
   }
   /* USER CODE END 3 */
 }

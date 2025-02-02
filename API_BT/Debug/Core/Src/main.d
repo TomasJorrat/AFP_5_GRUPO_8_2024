@@ -25,7 +25,7 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr_ex.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h \
- D:/STM32WorkSpace/AFP_5_Grupo8_2024/AFP_5_GRUPO_8_2024/API_BT/Drivers/API/Inc/API_BT.h
+ D:/mis\ cosas/Ingenieria/UTN-FRT/OneDrive\ -\ frt.utn.edu.ar/Repos/AFP_5_GRUPO_8_2024/API_BT/Drivers/API/Inc/API_BT.h
 ../Core/Inc/main.h:
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h:
 ../Core/Inc/stm32f4xx_hal_conf.h:
@@ -53,4 +53,4 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr.h:
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr_ex.h:
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h:
-D:/STM32WorkSpace/AFP_5_Grupo8_2024/AFP_5_GRUPO_8_2024/API_BT/Drivers/API/Inc/API_BT.h:
+D:/mis\ cosas/Ingenieria/UTN-FRT/OneDrive\ -\ frt.utn.edu.ar/Repos/AFP_5_GRUPO_8_2024/API_BT/Drivers/API/Inc/API_BT.h:

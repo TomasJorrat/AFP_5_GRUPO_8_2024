@@ -10,12 +10,10 @@
 #include <string.h>
 
 /*Declaracion de variables*/
-//msj_t Mx_TX[20]="Alarma Activada \n\r", Mx_RX[20];
-msj_t Mx_TX[100];
-msj_t Mx_RX[100];
+msj_t Mx_TX[100];		//Mensaje a transmitir
+msj_t Mx_RX[100];		//Mensaje recibido
 
 UART_HandleTypeDef huart2;
-
 
 /* Function Definition *******************************/
 
@@ -49,10 +47,7 @@ void MX_USART2_UART_Init(void)
  * @retval void
 
 */
-/*void BT_TX(msj_t Mx_TX)
-{
-	HAL_UART_Transmit(&huart2, Mx_TX, sizeof(Mx_TX), HAL_MAX_DELAY);
-}*/
+
 void BT_TX(const msj_t *Mx_TX){ // Cambiar para recibir un puntero
 HAL_UART_Transmit(&huart2, Mx_TX, strlen((const char *)Mx_TX), HAL_MAX_DELAY);
 }
@@ -63,10 +58,6 @@ HAL_UART_Transmit(&huart2, Mx_TX, strlen((const char *)Mx_TX), HAL_MAX_DELAY);
  * @param msj_t Mx_TX (cadena de caracteres)
  * @retval void
 */
-/*void BT_TX_IT(msj_t Mx_TX)
-{
-	HAL_UART_Transmit_IT(&huart2, Mx_TX, strlen((const char *)(Mx_TX)-1));
-}*/
 void BT_TX_IT(const msj_t *Mx_TX)
 {
   HAL_UART_Transmit_IT(&huart2, Mx_TX, strlen((const char *)Mx_TX));
