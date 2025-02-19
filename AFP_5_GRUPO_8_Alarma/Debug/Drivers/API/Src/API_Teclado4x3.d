@@ -1,5 +1,5 @@
 Drivers/API/Src/API_Teclado4x3.o: ../Drivers/API/Src/API_Teclado4x3.c \
- D:/mis\ cosas/Ingenieria/UTN-FRT/OneDrive\ -\ frt.utn.edu.ar/Repos/AFP_5_GRUPO_8_2024/AFP_5_GRUPO_8_Alarma/Drivers/API/Inc/API_Teclado4x3.h \
+ D:/STM32WorkSpace/AFP_5_Grupo8_2024/AFP_5_GRUPO_8_2024/AFP_5_GRUPO_8_Alarma/Drivers/API/Inc/API_Teclado4x3.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h \
  ../Core/Inc/stm32f4xx_hal_conf.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_rcc.h \
@@ -28,10 +28,11 @@ Drivers/API/Src/API_Teclado4x3.o: ../Drivers/API/Src/API_Teclado4x3.c \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr_ex.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h \
- D:/mis\ cosas/Ingenieria/UTN-FRT/OneDrive\ -\ frt.utn.edu.ar/Repos/AFP_5_GRUPO_8_2024/AFP_5_GRUPO_8_Alarma/Drivers/API/Inc/API_Debounce.h \
- D:/mis\ cosas/Ingenieria/UTN-FRT/OneDrive\ -\ frt.utn.edu.ar/Repos/AFP_5_GRUPO_8_2024/AFP_5_GRUPO_8_Alarma/Drivers/API/Inc/API_Delay.h \
- D:/mis\ cosas/Ingenieria/UTN-FRT/OneDrive\ -\ frt.utn.edu.ar/Repos/AFP_5_GRUPO_8_2024/AFP_5_GRUPO_8_Alarma/Drivers/API/Inc/API_GPIO.h
-D:/mis\ cosas/Ingenieria/UTN-FRT/OneDrive\ -\ frt.utn.edu.ar/Repos/AFP_5_GRUPO_8_2024/AFP_5_GRUPO_8_Alarma/Drivers/API/Inc/API_Teclado4x3.h:
+ D:/STM32WorkSpace/AFP_5_Grupo8_2024/AFP_5_GRUPO_8_2024/AFP_5_GRUPO_8_Alarma/Drivers/API/Inc/API_Delay.h \
+ D:/STM32WorkSpace/AFP_5_Grupo8_2024/AFP_5_GRUPO_8_2024/AFP_5_GRUPO_8_Alarma/Drivers/API/Inc/API_Debounce.h \
+ D:/STM32WorkSpace/AFP_5_Grupo8_2024/AFP_5_GRUPO_8_2024/AFP_5_GRUPO_8_Alarma/Drivers/API/Inc/API_Delay.h \
+ D:/STM32WorkSpace/AFP_5_Grupo8_2024/AFP_5_GRUPO_8_2024/AFP_5_GRUPO_8_Alarma/Drivers/API/Inc/API_GPIO.h
+D:/STM32WorkSpace/AFP_5_Grupo8_2024/AFP_5_GRUPO_8_2024/AFP_5_GRUPO_8_Alarma/Drivers/API/Inc/API_Teclado4x3.h:
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h:
 ../Core/Inc/stm32f4xx_hal_conf.h:
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_rcc.h:
@@ -60,6 +61,7 @@ D:/mis\ cosas/Ingenieria/UTN-FRT/OneDrive\ -\ frt.utn.edu.ar/Repos/AFP_5_GRUPO_8
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr.h:
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr_ex.h:
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h:
-D:/mis\ cosas/Ingenieria/UTN-FRT/OneDrive\ -\ frt.utn.edu.ar/Repos/AFP_5_GRUPO_8_2024/AFP_5_GRUPO_8_Alarma/Drivers/API/Inc/API_Debounce.h:
-D:/mis\ cosas/Ingenieria/UTN-FRT/OneDrive\ -\ frt.utn.edu.ar/Repos/AFP_5_GRUPO_8_2024/AFP_5_GRUPO_8_Alarma/Drivers/API/Inc/API_Delay.h:
-D:/mis\ cosas/Ingenieria/UTN-FRT/OneDrive\ -\ frt.utn.edu.ar/Repos/AFP_5_GRUPO_8_2024/AFP_5_GRUPO_8_Alarma/Drivers/API/Inc/API_GPIO.h:
+D:/STM32WorkSpace/AFP_5_Grupo8_2024/AFP_5_GRUPO_8_2024/AFP_5_GRUPO_8_Alarma/Drivers/API/Inc/API_Delay.h:
+D:/STM32WorkSpace/AFP_5_Grupo8_2024/AFP_5_GRUPO_8_2024/AFP_5_GRUPO_8_Alarma/Drivers/API/Inc/API_Debounce.h:
+D:/STM32WorkSpace/AFP_5_Grupo8_2024/AFP_5_GRUPO_8_2024/AFP_5_GRUPO_8_Alarma/Drivers/API/Inc/API_Delay.h:
+D:/STM32WorkSpace/AFP_5_Grupo8_2024/AFP_5_GRUPO_8_2024/AFP_5_GRUPO_8_Alarma/Drivers/API/Inc/API_GPIO.h:

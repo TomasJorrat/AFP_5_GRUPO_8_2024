@@ -22,9 +22,9 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "API_BT.h"				//Libreria para el manejo de modulo HC-05 USART2
-#include "API_GPIO.h"			//Libreria para el manjeo de puertos GPIO (Sensores, Sirena y Leds)
+#include "API_GPIO.h"			//Libreria para el manejo de puertos GPIO (Sensores, Sirena y Leds)
 #include "API_Debounce.h"		//Libreria para evitar el rebote mecanico en la pulsacion de botones
-#include "API_Delay.h"			//Libreria para delay no bloqueante
+#include "API_Delay.h"			//Libreria para retardo NO bloqueante
 #include "API_Teclado4x3.h"		//Libreria para manejo de teclado matricial 4x3
 #include "API_LCD.h"			//Libreria para el manejo de pantalla LCD 2x16 I2C
 #include <stdio.h>
@@ -53,27 +53,24 @@
 extern I2C_HandleTypeDef hi2c2;
 extern UART_HandleTypeDef huart2;
 
-char currentPassword[5] = "1234";  // Contraseña inicial por defecto
-char newPassword[5];                // Para almacenar la nueva contraseña
-typedef enum {
-	MAIN_MENU,
-	ALARM_MENU,
-	CHANGE_PASS_MENU,
-	TEST_ALARM_MENU,
-	ACTIVE_ALARM
-} MenuState;
+char currentPassword[5] = "1234";  		// Contraseña inicial por defecto
+char newPassword[5];               		// Para almacenar la nueva contraseña
+
 MenuState currentState = MAIN_MENU;
 bool includeMotionSensor = false;
 char inputBuffer[5];
 uint8_t inputIndex = 0;
-bool alarmActivated = false;   // Estado de la alarma
-bool countdownStarted = false; // Temporizador interno
-uint32_t startTime = 0;        // Momento en que inicia el temporizador interno
+bool alarmActivated = false;   			// Estado de la alarma
+bool countdownStarted = false; 			// Temporizador interno
+uint32_t startTime = 0;        			// Momento en que inicia el temporizador interno
+
+delay_t DelayGRAL_1;					// Variables de retardos generales para uso independiente
+delay_t DelayGRAL_2;
+delay_t	LCD_Muestro;					// Delay para muestreo de mensaje en LCD
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
-
-
 /* USER CODE BEGIN PFP */
 void DisplayMainMenu();
 void HandleMainMenuInput(char key);
@@ -86,7 +83,7 @@ void DisplayChangePassMenu();
 void ConfirmNewPassword();
 void HandleSubMenu();
 void TestAlarm();
-void AlarmTriggered();
+extern void AlarmTriggered();
 void IncorrectPassword();
 void HandleActiveAlarm(char key);
 void CheckSensors();
@@ -108,46 +105,39 @@ void BT_Test();
   */
 int main(void)
 {
-
   /* USER CODE BEGIN 1 */
-
   /* USER CODE END 1 */
-
   /* MCU Configuration--------------------------------------------------------*/
-
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
-
   /* USER CODE BEGIN Init */
-
   /* USER CODE END Init */
-
   /* Configure the system clock */
   SystemClock_Config();
-
   /* USER CODE BEGIN SysInit */
-
   /* USER CODE END SysInit */
-
+  /*****************************************************************************************************************/
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_I2C2_Init();
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
   keypad_init();
-  BT_Test(); // Enviar mensaje de prueba al HC-05
-  HAL_Delay(30);//
+  BT_Test(); 						// Enviar mensaje de prueba al HC-05
+  HAL_Delay(30);					// Delay bloqueante minimo necesario para que pueda recibir datos el integrado del LCD
   lcd_init();
-  DisplayMainMenu();
+  DisplayMainMenu(); 				// Muestra el menu principal en la pantalla
+  delayInit(&DelayGRAL_1,20000);
   /* USER CODE END 2 */
-
+ /******************************************************************************************************************/
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  char key = keypad_get_key();
+/*****************************************************************************************************************************************/
+	  /*char key = keypad_get_key();
 
-	  if (key != '\0'){
+	  if (key != '\0'){		// Verificar si es necesario este if, no estaria entrando en el caso de ACTIVE_ALARM para chequeo de sensores...
 		  switch (currentState){
 			  case MAIN_MENU:
 				  HandleMainMenuInput(key);
@@ -161,6 +151,21 @@ int main(void)
 				  CheckSensors(); 				// Revisa los sensores mientras la alarma está activa
 				  break;
 		  }
+	  }*/
+/******************************************************************************************************************************************/
+	 char key = keypad_get_key(); // Modificacion del if dentro del switch
+	  switch (currentState) {
+	      case MAIN_MENU:
+	          if (key != '\0') HandleMainMenuInput(key);
+	          break;
+	      case ALARM_MENU:
+	          if (key != '\0') HandleAlarmMenuInput(key);
+	          break;
+	      case CHANGE_PASS_MENU:
+	      case TEST_ALARM_MENU:
+	      case ACTIVE_ALARM:
+	          CheckSensors();
+	          break;
 	  }
 	  /* USER CODE END WHILE */
 
@@ -169,11 +174,15 @@ int main(void)
   }
   /* USER CODE END 3 */
 }
-
+/*******************************************************************************************************************/
 
 /* USER CODE BEGIN 4 */
-// Función para mostrar el menú principal
-void DisplayMainMenu() {
+/*****************************************************************************************************************
+ * @brief: Función para mostrar el menú principal
+ * @param: void
+ * @retval: void
+******************************************************************************************************************/
+void DisplayMainMenu(void) {
     lcd_clear();
     lcd_set_cursor(0, 0);
     lcd_print("1.Activar *.Mas");
@@ -181,8 +190,11 @@ void DisplayMainMenu() {
     lcd_print("2.Cambiar Pass");
     currentState = MAIN_MENU;
 }
-
-// Manejo de la entrada del menú principal
+/*****************************************************************************************************************
+ * @brief: Manejo de la entrada del menú principal
+ * @param: recibe una variable tipo caracter para entrar en las distintas opciones de menu
+ * @retval: void
+******************************************************************************************************************/
 void HandleMainMenuInput(char key) {
     switch (key) {
         case '1':
@@ -196,9 +208,12 @@ void HandleMainMenuInput(char key) {
             break;
     }
 }
-
-// Mostrar menú para activar alarma
-void DisplayAlarmMenu() {
+/*****************************************************************************************************************
+ * @brief: Mostrar menú para activar alarma
+ * @param: void
+ * @retval: void
+******************************************************************************************************************/
+void DisplayAlarmMenu(void) {
     lcd_clear();
     lcd_set_cursor(0, 0);
     lcd_print("1.Sist Completo");
@@ -206,15 +221,18 @@ void DisplayAlarmMenu() {
     lcd_print("2.Sin Sensor Mov");
     currentState = ALARM_MENU;
 }
-
-// Manejo de la entrada del menú de alarma
+/*****************************************************************************************************************
+ * @brief: Manejo de la entrada del menú de alarma
+ * @param: Recibe variable tipo caracter
+ * @retval:
+******************************************************************************************************************/
 void HandleAlarmMenuInput(char key) {
     switch (key) {
-        case '1':  // Modo "Sist Completo"
+        case '1':  // Modo "Sistema Completo"
             includeMotionSensor = true;
             RequestPassword(ActivateAlarm, DisplayAlarmMenu);
             break;
-        case '2':  // Modo "Sin Sensor Mov"
+        case '2':  // Modo "Sin Sensor de Movimiento"
             includeMotionSensor = false;
             RequestPassword(ActivateAlarm, DisplayAlarmMenu);
             break;
@@ -224,47 +242,64 @@ void HandleAlarmMenuInput(char key) {
             lcd_print("Operacion");
             lcd_set_cursor(1, 0);
             lcd_print("Cancelada");
-            HAL_Delay(2000);
-            DisplayMainMenu();  // Volver al menú principal
+            //HAL_Delay(2000);			// Delay bloqueante necesario para muestreo de mensaje
+            delayInit(&LCD_Muestro, 2000);
+            while(!delayRead(&LCD_Muestro)){
+            	// Espacio para ejecutar tareas mientras muestra el mensaje anterior
+            }
+            DisplayMainMenu();  		// Volver al menú principal
             break;
     }
 }
-
-// Solicitud de contraseña
+/********************************************************************************************************************************
+ * @brief: Solicitud de contraseña al usuario
+ * @param: Recibe funciones, posibilidades: opc1 =(Activate Alarm, DisplayAlarmMenu), opc2= (DeactivateAlarm, IncorrectPassword)
+ * @retval: void
+********************************************************************************************************************************/
 void RequestPassword(void (*onSuccess)(void), void (*onFailure)(void)) {
     while (1) { // Bucle para reintentar si la contraseña es incorrecta
         lcd_clear();
         lcd_set_cursor(0, 0);
         lcd_print("Contrasena:____");
-        memset(inputBuffer, 0, sizeof(inputBuffer));
+        memset(inputBuffer, 0, sizeof(inputBuffer));		// Re-incializa la variable en [0000]
         inputIndex = 0;
 
-        uint32_t startTime = HAL_GetTick();  // Guardar el tiempo de inicio
-
+        //uint32_t startTime = HAL_GetTick();  // Guardar el tiempo de inicio
+        delayInit(&DelayGRAL_1, 20000);
         while (1) {
-            if (HAL_GetTick() - startTime > 20000) { // Si pasan más de 20 segundos sin entrada
+
+            if (delayRead(&DelayGRAL_1)) { 			// Si pasan más de 20 segundos sin entrada
                 lcd_clear();
                 lcd_set_cursor(0, 0);
                 lcd_print("Tiempo agotado");
                 lcd_set_cursor(1, 0);
                 lcd_print("Volviendo...");
-                HAL_Delay(2000);
-                DisplayMainMenu();  // Volver al menú principal
+
+                //HAL_Delay(2000);				// Retardo bloqueante necesario para muestreo de mensaje
+                delayInit(&LCD_Muestro, 2000);
+                while(!delayRead(&LCD_Muestro)){
+                	// Espacio para ejecutar tareas mientras muestra el mensaje anterior
+                }
+                DisplayMainMenu();  			// Volver al menú principal
                 return;
             }
 
             char key = keypad_get_key();
 
             if (key != '\0') {
-                startTime = HAL_GetTick();  // Reiniciar el temporizador
-
+                //startTime = HAL_GetTick();  // Reiniciar el temporizador // Estaria demas si se usa
+            	delayInit(&DelayGRAL_1, 20000);
                 if (key == '*') {  // Si presiona "*", vuelve al menú principal
                     lcd_clear();
                     lcd_set_cursor(0, 0);
                     lcd_print("Operacion");
                     lcd_set_cursor(1, 0);
                     lcd_print("Cancelada");
-                    HAL_Delay(2000);
+                    //HAL_Delay(2000);
+                    delayInit(&LCD_Muestro, 2000);
+                    while(!delayRead(&LCD_Muestro)){
+                    	// Espacio para ejecutar tareas mientras muestra el mensaje anterior
+                    }
                     DisplayMainMenu();  // Volver al menú principal
                     return;
                 }
@@ -273,10 +308,10 @@ void RequestPassword(void (*onSuccess)(void), void (*onFailure)(void)) {
                     inputBuffer[inputIndex++] = key;
                     lcd_set_cursor(1, 10 + inputIndex - 1);
                     lcd_print("*");
-                } else if (key == '#') { //  Cuando se presiona "#", verifica la clave
+                }else if (key == '#') { //  Cuando se presiona "#", verifica la clave
                     inputBuffer[inputIndex] = '\0';
-                    if (strcmp(inputBuffer, currentPassword) == 0) {
-                        onSuccess(); // Si la clave es correcta, sale de la función
+                    if (strcmp(inputBuffer, currentPassword) == 0) {// strcmp compara 2 cadenas de caractares y devuelve un entero =0 si son iguales
+                        onSuccess(); // Si la clave es correcta, sale de la función y retorna a la funcion ActivateAlarm
                         return;
                     } else {
                         //  Si la contraseña es incorrecta, mostrar mensaje y volver a pedirla
@@ -285,17 +320,23 @@ void RequestPassword(void (*onSuccess)(void), void (*onFailure)(void)) {
                         lcd_print("Contrasena");
                         lcd_set_cursor(1, 0);
                         lcd_print("Incorrecta");
-                        HAL_Delay(5000);
-                        break;  //  Sale de este while pero vuelve al inicio del while externo
+                        //HAL_Delay(2000);			// VERIFICAR FISICAMENTE EL TIEMPO NECESARIO...
+                        delayInit(&LCD_Muestro, 2000);
+                        while(!delayRead(&LCD_Muestro)){
+                        	// Espacio para ejecutar tareas mientras muestra el mensaje anterior
+                        }
+                        break;  //  Sale de este while pero vuelve al inicio del while externo dentro de RequestPassword
                     }
                 }
             }
         }
     }
 }
-
-
-// Activar la alarma
+/*****************************************************************************************************************
+ * @brief: Activar la alarma
+ * @param: void
+ * @retval: void
+******************************************************************************************************************/
 void ActivateAlarm() {
     lcd_clear();
     lcd_set_cursor(0, 0);
@@ -305,7 +346,8 @@ void ActivateAlarm() {
 
     BT_SendMessage("⚠️ Alarma activada. Corran 20s... \r\n");
 
-    uint32_t countdownStart = HAL_GetTick();
+/*******************************************************************************************************************/
+    /*uint32_t countdownStart = HAL_GetTick();
     uint32_t remainingTime = 20;
 
     while (remainingTime > 0) {
@@ -320,8 +362,23 @@ void ActivateAlarm() {
             sprintf(buffer, "%2lu", (unsigned long)remainingTime);
             lcd_print(buffer);
         }
-    }
+    }*/
+    uint32_t remainingTime = 20;
+    delayInit(&DelayGRAL_2, 1000);
+    while (remainingTime > 0) {
+            if (delayRead(&DelayGRAL_2)) {  // Espera 1 segundo antes de continuar
+                remainingTime--;
 
+                lcd_set_cursor(1, 7);
+                lcd_print("   "); // Borra el número anterior
+                lcd_set_cursor(1, 7);
+                char buffer[3];
+                sprintf(buffer, "%2lu", (unsigned long)remainingTime);
+                lcd_print(buffer);
+            }
+        }
+
+/*******************************************************************************************************************/
     lcd_clear();
     lcd_set_cursor(0, 0);
     lcd_print("Alarma");
@@ -333,6 +390,8 @@ void ActivateAlarm() {
     alarmActivated = true;
     currentState = ACTIVE_ALARM;
 
+    enableSensorInterrupts();			// Habilitacion de interrupciones para pines GPIO correspondientes a los sensores
+
     while (alarmActivated) {
         char key = keypad_get_key();
         if (key != '\0') {
@@ -340,8 +399,11 @@ void ActivateAlarm() {
         }
     }
 }
-
-// Manejar la alarma activa
+/*****************************************************************************************************************
+ * @brief: Manejar la alarma activa
+ * @param: Recibe variable tipo caracter
+ * @retval: void
+******************************************************************************************************************/
 void HandleActiveAlarm(char key) {
     if (key == '#') { // Botón para intentar desactivar
         lcd_clear();
@@ -360,9 +422,12 @@ void HandleActiveAlarm(char key) {
            }
        }
 }
-
-// Desactivar la alarma si la contraseña es correcta
-void DeactivateAlarm() {
+/*****************************************************************************************************************
+ * @brief: Desactivar la alarma si la contraseña es correcta
+ * @param: void
+ * @retval: void
+******************************************************************************************************************/
+void DeactivateAlarm(void) {
     lcd_clear();
     lcd_set_cursor(0, 0);
     lcd_print("Alarma");
@@ -373,27 +438,48 @@ void DeactivateAlarm() {
 
     alarmActivated = false;
 
-    // Asegurar que el buzzer se apaga
+    // Asegurar que el buzzer(SIRENA) se apaga
     HAL_GPIO_WritePin(Sirena_GPIO_Port, Sirena_Pin, GPIO_PIN_RESET);
 
-    HAL_Delay(2000);
+    disableSensorInterrupts(); // Deshabilita las interrupciones cuando se desactiva la alarma. Evita interrupciones innecesarias.
+
+    //HAL_Delay(2000);		// Delay referente al mensaje en pantalla "Alarma Desactivada"
+    delayInit(&LCD_Muestro, 2000);
+    while(!delayRead(&LCD_Muestro)){
+    	// Espacio para ejecutar tareas mientras muestra el mensaje anterior
+    }
     DisplayMainMenu();
 }
-
-
-// Contraseña incorrecta: mensaje y reinicio de intento
-void IncorrectPassword() {
+/*****************************************************************************************************************
+ * @brief: Contraseña incorrecta: mensaje y reinicio de intento
+ * @param: void
+ * @retval: void
+******************************************************************************************************************/
+void IncorrectPassword(void) {
     lcd_clear();
     lcd_set_cursor(0, 0);
     lcd_print("Contrasena");
     lcd_set_cursor(1, 0);
     lcd_print("Incorrecta");
-    HAL_Delay(5000); // Mostrar mensaje durante 5 segundos
+    //HAL_Delay(2000); 			// Mostrar mensaje durante 5 segundos
+    delayInit(&LCD_Muestro, 5000);
+    while(!delayRead(&LCD_Muestro)){
+    	// Espacio para ejecutar tareas mientras muestra el mensaje anterior
+    }
 
-    // Iniciar temporizador interno si aún no está activo
+/*    // Inicia temporizador interno si aún no está activo
     if (!countdownStarted) {
         countdownStarted = true;
         startTime = HAL_GetTick(); // Guardar tiempo actual
+    }
+*/
+    // Iniciar temporizador de 31 segundos si aún no está activo
+    static delay_t countdownDelay;  // Variable estática para mantener el estado del temporizador
+    static bool countdownStarted = false;
+
+    if (!countdownStarted) {
+        countdownStarted = true;
+        delayInit(&countdownDelay, 31000); // Iniciar temporizador de 31 segundos
     }
 
     // Solicitar nuevamente la contraseña
@@ -403,9 +489,12 @@ void IncorrectPassword() {
     lcd_set_cursor(1, 0);
     lcd_print("Contrasena:");
 }
-
-// Activar alarma sonora
-void AlarmTriggered() {
+/*****************************************************************************************************************
+ * @brief: Activar alarma sonora
+ * @param: void
+ * @retval: void
+******************************************************************************************************************/
+void AlarmTriggered(void) {
     lcd_clear();
     lcd_set_cursor(0, 0);
     lcd_print("ALERTA!!!");
@@ -414,14 +503,18 @@ void AlarmTriggered() {
 
     BT_SendMessage("⚠️ Alarma activada! \r\n"); // Enviar mensaje por Bluetooth
 
-    uint32_t lastToggleTime = HAL_GetTick();  // Tiempo de referencia para el buzzer
+    //uint32_t lastToggleTime = HAL_GetTick();  // Tiempo de referencia para el buzzer
 
     while (alarmActivated) {
         // Alternar el buzzer cada 500 ms sin bloquear el sistema
-        if (HAL_GetTick() - lastToggleTime >= 500) {
+        /*if (HAL_GetTick() - lastToggleTime >= 500) {
             lastToggleTime = HAL_GetTick();
             HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_13);
-        }
+        }*/
+    	delayInit(&DelayGRAL_1, 500);
+    	if (delayRead(&DelayGRAL_1)){
+    		HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_13);
+    	}
 
         // Permitir que el usuario intente apagar la alarma
         char key = keypad_get_key();
@@ -440,8 +533,11 @@ void AlarmTriggered() {
     // Apagar el buzzer cuando la alarma se desactiva
     HAL_GPIO_WritePin(GPIOA, GPIO_PIN_13, GPIO_PIN_RESET);
 }
-
-// Cambiar contraseña
+/*****************************************************************************************************************
+ * @brief: Cambiar contraseña
+ * @param: void
+ * @retval: void
+******************************************************************************************************************/
 void DisplayChangePassMenu() {
     lcd_clear();
     lcd_set_cursor(0, 0);
@@ -458,7 +554,11 @@ void DisplayChangePassMenu() {
             lcd_print("Operacion");
             lcd_set_cursor(1, 0);
             lcd_print("Cancelada");
-            HAL_Delay(2000);
+            //HAL_Delay(2000);
+            delayInit(&LCD_Muestro, 2000);
+            while(!delayRead(&LCD_Muestro)){
+            	// Espacio para ejecutar tareas mientras muestra el mensaje anterior
+            }
             DisplayMainMenu();  //  Volver al menú principal
             return;
         }
@@ -469,7 +569,11 @@ void DisplayChangePassMenu() {
 
     RequestPassword(ConfirmNewPassword, DisplayChangePassMenu);
 }
-
+/*****************************************************************************************************************
+ * @brief:
+ * @param:
+ * @retval:
+******************************************************************************************************************/
 void ConfirmNewPassword() {
     lcd_clear();
     lcd_set_cursor(0, 0);
@@ -477,9 +581,10 @@ void ConfirmNewPassword() {
 
     memset(inputBuffer, 0, sizeof(inputBuffer));
     inputIndex = 0;
-    uint32_t startTime = HAL_GetTick();  // Tiempo de inicio para evitar bucles infinitos
-
-    while (HAL_GetTick() - startTime < 20000) {  // Tiempo límite de 20 segundos
+    //uint32_t startTime = HAL_GetTick();  // Tiempo de inicio para evitar bucles infinitos
+    delayInit(&DelayGRAL_1, 20000);
+    //while (HAL_GetTick() - startTime < 20000) {  // Tiempo límite de 20 segundos
+    while (delayRead(&DelayGRAL_1)) {  // Tiempo límite de 20 segundos
         char key = keypad_get_key();
 
         if (key >= '0' && key <= '9' && inputIndex < 4) {
@@ -497,15 +602,21 @@ void ConfirmNewPassword() {
                 lcd_set_cursor(1, 0);
                 lcd_print("*.Si   #.No");
 
-                uint32_t confirmStart = HAL_GetTick();
-                while (HAL_GetTick() - confirmStart < 10000) {  // Espera 10 segundos para confirmar
+                //uint32_t confirmStart = HAL_GetTick();
+                //while (HAL_GetTick() - confirmStart < 10000) {  // Espera 10 segundos para confirmar
+                delayInit(&DelayGRAL_2, 10000);
+                while(delayRead(&DelayGRAL_2)){
                     char confirmKey = keypad_get_key();
                     if (confirmKey == '*') {
                         strcpy(currentPassword, newPassword);
                         lcd_clear();
                         lcd_set_cursor(0, 0);
                         lcd_print("Clave Actualizada");
-                        HAL_Delay(2000);
+                        //HAL_Delay(2000);
+                        delayInit(&LCD_Muestro, 2000);
+                        while(!delayRead(&LCD_Muestro)){
+                        	// Espacio para ejecutar tareas mientras muestra el mensaje anterior
+                        }
                         DisplayMainMenu();
                         return;
                     } else if (confirmKey == '#') {
@@ -519,7 +630,11 @@ void ConfirmNewPassword() {
                 lcd_print("Debe ser 4 ");
                 lcd_set_cursor(1, 0);
                 lcd_print("digitos ");
-                HAL_Delay(2000);
+                //HAL_Delay(2000);
+                delayInit(&LCD_Muestro, 2000);
+                while(!delayRead(&LCD_Muestro)){
+                	// Espacio para ejecutar tareas mientras muestra el mensaje anterior
+                }
                 ConfirmNewPassword();  // Reiniciar el proceso
                 return;
             }
@@ -532,10 +647,18 @@ void ConfirmNewPassword() {
     lcd_print("Tiempo ");
     lcd_set_cursor(1, 0);
     lcd_print("Excedido ");
-    HAL_Delay(2000);
+    //HAL_Delay(2000);
+    delayInit(&LCD_Muestro, 2000);
+    while(!delayRead(&LCD_Muestro)){
+    	// Espacio para ejecutar tareas mientras muestra el mensaje anterior
+    }
     DisplayMainMenu();
 }
-
+/*****************************************************************************************************************
+ * @brief:
+ * @param:
+ * @retval:
+******************************************************************************************************************/
 // Submenú "Más"
 void HandleSubMenu() {
     lcd_clear();
@@ -558,7 +681,11 @@ void HandleSubMenu() {
         }
     }
 }
-
+/*****************************************************************************************************************
+ * @brief:
+ * @param:
+ * @retval:
+******************************************************************************************************************/
 // Prueba de alarma
 void TestAlarm() {
     lcd_clear();
@@ -569,17 +696,30 @@ void TestAlarm() {
 
     // Activar el buzzer en PA13
     HAL_GPIO_WritePin(GPIOA, GPIO_PIN_13, GPIO_PIN_SET);
-    HAL_Delay(5000);  // Mantener el buzzer encendido 5 segundos
+    //HAL_Delay(5000);  // Mantener el buzzer encendido 5 segundos
+    delayInit(&LCD_Muestro, 5000);
+    while(!delayRead(&LCD_Muestro)){
+    	// Espacio para ejecutar tareas mientras muestra el mensaje anterior
+    }
     HAL_GPIO_WritePin(GPIOA, GPIO_PIN_13, GPIO_PIN_RESET);  // Apagar buzzer
 
-    HAL_Delay(1000);  // Pequeña pausa antes de volver al menú
+    //HAL_Delay(1000);  // Pequeña pausa antes de volver al menú
+    delayInit(&LCD_Muestro, 1000);
+    while(!delayRead(&LCD_Muestro)){
+    	// Espacio para ejecutar tareas mientras muestra el mensaje anterior
+    }
     DisplayMainMenu();
 }
-
-
-void CheckSensors() {
+/*****************************************************************************************************************
+ * @brief: Chequeo de sensores
+ * @param: void
+ * @retval: void
+******************************************************************************************************************/
+void CheckSensors(void) {
     if (alarmActivated) {
         // Verificar si se abre una puerta o ventana (sensor magnético)
+    	// El manejo de los sensores con interrupciones deberia ser unicamente cuando la alarma este activada, es decir,
+    	// la interrupcion tiene que darse por valida cuando este en modo activada...
         bool doorOpened = (HAL_GPIO_ReadPin(GPIOA, Sensor_Magnetico_1_Pin) == GPIO_PIN_RESET);
         bool motionDetected = false;
 
@@ -588,51 +728,81 @@ void CheckSensors() {
             motionDetected = HAL_GPIO_ReadPin(GPIOA, Sensor_PIR_Pin);
 
             // Filtro por software para evitar falsas detecciones
-            HAL_Delay(50);
+            //HAL_Delay(50);
+            delayInit(&LCD_Muestro, 2000);
+            while(!delayRead(&LCD_Muestro)){
+            	// Espacio para ejecutar tareas mientras muestra el mensaje anterior
+            }
             if (HAL_GPIO_ReadPin(GPIOA, Sensor_PIR_Pin) != motionDetected) {
                 motionDetected = false; // Ignorar si el estado cambió muy rápido
             }
         }
-
         // Evaluar si se debe activar la alarma
         if (doorOpened || (includeMotionSensor && motionDetected)) {
             AlarmTriggered();
         }
     }
 }
-
-//Enviar datos al HC-05
+/*****************************************************************************************************************
+ * @brief: Enviar datos al HC-05
+ * @param:
+ * @retval:
+******************************************************************************************************************/
 void BT_SendMessage(char *message) {
     HAL_UART_Transmit(&huart2, (uint8_t *)message, strlen(message), HAL_MAX_DELAY);
 }
-
-
-//Recibir datos desde el HC-05
+/*****************************************************************************************************************
+ * @brief: Recibir datos desde el HC-05
+ * @param:
+ * @retval:
+******************************************************************************************************************/
 char BT_ReceiveMessage() {
     char receivedChar;
     HAL_UART_Receive(&huart2, (uint8_t *)&receivedChar, 1, HAL_MAX_DELAY);
     return receivedChar;
 }
-
-//Para probar si el STM32 está enviando datos correctamente al módulo Bluetooth HC-05
+/*****************************************************************************************************************
+ * @brief: Para probar si el STM32 está enviando datos correctamente al módulo Bluetooth HC-05
+ * @param:
+ * @retval:
+******************************************************************************************************************/
 void BT_Test() {
     char message[] = "✅ HC-05 conectado con STM32\r\n";
     HAL_UART_Transmit(&huart2, (uint8_t *)message, strlen(message), HAL_MAX_DELAY);
 }
-
-
-void CheckAlarmDeactivation(char key) {
+/*****************************************************************************************************************
+ * @brief:
+ * @param:
+ * @retval:
+******************************************************************************************************************/
+/*void CheckAlarmDeactivation(char key) {
     static bool countdownStarted = false;  // Variable local para evitar reiniciar el temporizador
 
-    if (!countdownStarted) {
+    if (!countdownStarted) {			// A chequear
         countdownStarted = true;
-        startTime = HAL_GetTick();  //  Iniciar temporizador solo cuando se intenta desactivar la alarma
+        startTime = HAL_GetTick();  	//  Iniciar temporizador solo cuando se intenta desactivar la alarma
     }
 
     RequestPassword(DeactivateAlarm, IncorrectPassword);
 
     // Si pasan 31 segundos sin ingresar la clave correcta, activar la alarma
     if (HAL_GetTick() - startTime >= 31000) {
+        AlarmTriggered();
+    }
+}*/
+void CheckAlarmDeactivation(char key) {
+    static delay_t countdownDelay;
+    static bool countdownStarted = false;
+
+    if (!countdownStarted) {
+        countdownStarted = true;
+        delayInit(&countdownDelay, 31000);  // Iniciar temporizador de 31 segundos
+    }
+
+    RequestPassword(DeactivateAlarm, IncorrectPassword);
+
+    // Si pasan 31 segundos sin ingresar la clave correcta, activar la alarma
+    if (delayRead(&countdownDelay)) {
         AlarmTriggered();
     }
 }

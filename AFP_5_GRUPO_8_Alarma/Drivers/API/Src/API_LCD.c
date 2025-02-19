@@ -1,9 +1,7 @@
-#include <API_LCD.h>
+#include "API_LCD.h"
 #include "stm32f4xx_hal.h"
 #include <stdio.h>
 #include <string.h>
-#include <stdio.h>
-
 I2C_HandleTypeDef hi2c2; // Cambia si configuras otro periférico en CubeMX
 #define LCD_ADDR 0x27         // Dirección I2C de la pantalla LCD (modifícala según tu dispositivo)
 

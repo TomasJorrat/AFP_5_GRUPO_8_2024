@@ -31,17 +31,26 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include <stdbool.h>
+#include <stdint.h>
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
-
+typedef enum {
+	MAIN_MENU,
+	ALARM_MENU,
+	CHANGE_PASS_MENU,
+	TEST_ALARM_MENU,
+	ACTIVE_ALARM
+} MenuState;
 /* USER CODE END ET */
 
 /* Exported constants --------------------------------------------------------*/
 /* USER CODE BEGIN EC */
-
+// Variables globales accesibles
+extern MenuState currentState;
+extern bool includeMotionSensor;
 /* USER CODE END EC */
 
 /* Exported macro ------------------------------------------------------------*/
@@ -51,9 +60,8 @@ extern "C" {
 
 /* Exported functions prototypes ---------------------------------------------*/
 void Error_Handler(void);
-
 /* USER CODE BEGIN EFP */
-
+void AlarmTriggered(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/

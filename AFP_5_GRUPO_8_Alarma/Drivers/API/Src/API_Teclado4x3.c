@@ -1,10 +1,10 @@
-/*
+/*****************************************************************************************************************
  * API_Teclado4x3.c
  *
  *  Adaptado a la estructura del primer código con comentarios explicativos
  *  Created on: Feb 1, 2025
  *      Author: EMILIO
- */
+ ******************************************************************************************************************/
 
 #include "API_Teclado4x3.h"
 #include "API_Debounce.h"
@@ -12,13 +12,14 @@
 #include "API_GPIO.h"
 #include <string.h>
 
-#define BUFFER_SIZE 16 // Tamaño del buffer circular para almacenar teclas presionadas
+/******************************************************************************************************************/
+#define BUFFER_SIZE 16 // Tamaño del buffer para almacenar teclas presionadas
 
 // Definición de pines para las columnas del teclado
-#define C1_PIN GPIO_PIN_2
+/*#define C1_PIN GPIO_PIN_2
 #define C2_PIN GPIO_PIN_4
 #define C3_PIN GPIO_PIN_5
-#define C_PORT GPIOE
+#define C_PORT GPIOE*/
 
 // Definición de pines para las filas del teclado
 #define R1_PIN GPIO_PIN_6
@@ -30,6 +31,7 @@
 #define ROWS 4 // Número de filas del teclado
 #define COLS 3 // Número de columnas del teclado
 
+/******************************************************************************************************************/
 // Mapeo de teclas del teclado matricial
 static char keymap[ROWS][COLS] = {
     {'1', '2', '3'},
@@ -42,15 +44,19 @@ static char keymap[ROWS][COLS] = {
 static uint16_t row_pins[ROWS] = {R1_PIN, R2_PIN, R3_PIN, R4_PIN};
 static uint16_t col_pins[COLS] = {C1_PIN, C2_PIN, C3_PIN};
 
-// Buffer circular para almacenar teclas presionadas
+// Buffer para almacenar teclas presionadas
 static char key_buffer[BUFFER_SIZE];
 static int buffer_head = 0;
 static int buffer_tail = 0;
 
 // Delay para debounce
-static delay_t debounce_delay;
+delay_t debounce_delay;
 
-// Inicialización del teclado matricial
+/***********************************************************************************************************************
+ * @brief Inicializacion de los pines GPIOs / Habilita las interrupciones para las columnas / Inicializa las filas en 1
+ * @param void
+ * @retval void
+************************************************************************************************************************/
 void keypad_init(void) {
     GPIO_InitTypeDef GPIO_InitStruct = {0};
 
@@ -84,8 +90,11 @@ void keypad_init(void) {
     debounceFSM_init();
     delayInit(&debounce_delay, 40);
 }
-
-// Agrega una tecla al buffer circular
+/*****************************************************************************************************************
+ * @brief: Agrega una tecla al buffer
+ * @param recibe variable tipo caracter para agregar al buffer
+ * @retval void
+******************************************************************************************************************/
 static void buffer_add(char key) {
     key_buffer[buffer_head] = key;
     buffer_head = (buffer_head + 1) % BUFFER_SIZE;
@@ -93,16 +102,22 @@ static void buffer_add(char key) {
         buffer_tail = (buffer_tail + 1) % BUFFER_SIZE; // Sobrescribe la tecla más antigua si el buffer está lleno
     }
 }
-
-// Obtiene una tecla del buffer circular
+/*****************************************************************************************************************
+ * @brief: Obtiene una tecla del buffer
+ * @param void
+ * @retval Devuelve la tecla presionada
+******************************************************************************************************************/
 char buffer_get(void) {
     if (buffer_head == buffer_tail) return 0; // Si el buffer está vacío
     char key = key_buffer[buffer_tail];
     buffer_tail = (buffer_tail + 1) % BUFFER_SIZE;
     return key;
 }
-
-// Verifica si alguna tecla está presionada
+/*****************************************************************************************************************
+ * @brief: Verifica si alguna tecla está presionada
+ * @param void
+ * @retval Devuelve variable booleana para confirmar o no si una tecla se mantiene presionada
+******************************************************************************************************************/
 bool keypad_key_pressed(void) {
     for (int row = 0; row < ROWS; row++) {
         HAL_GPIO_WritePin(R_PORT, row_pins[row], GPIO_PIN_RESET);
@@ -116,9 +131,12 @@ bool keypad_key_pressed(void) {
     }
     return false;
 }
-
-// Escanea el teclado y agrega teclas al buffer usando la FSM de debounce
-static void scan_keypad(void) {
+/*****************************************************************************************************************
+ * @brief: Escanea el teclado y agrega teclas al buffer usando la FSM de debounce
+ * @param: void
+ * @retval: void
+******************************************************************************************************************/
+void scan_keypad(void) {
     for (int row = 0; row < ROWS; row++) {
         HAL_GPIO_WritePin(R_PORT, row_pins[row], GPIO_PIN_RESET);
         for (int col = 0; col < COLS; col++) {
@@ -130,15 +148,22 @@ static void scan_keypad(void) {
         HAL_GPIO_WritePin(R_PORT, row_pins[row], GPIO_PIN_SET);
     }
 }
-
-// Manejo de interrupciones del teclado
+/*****************************************************************************************************************
+ * @brief: Manejo de interrupciones del teclado
+ * @param recibe el pin gpio de las columnas
+ * @retval void
+******************************************************************************************************************
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
     if (delayRead(&debounce_delay)) { // Verifica el debounce antes de escanear
         scan_keypad();
     }
-}
+}*/
 
-// Obtiene una tecla del buffer
+/*****************************************************************************************************************
+ * @brief: Obtiene una tecla del buffer
+ * @param void
+ * @retval void
+******************************************************************************************************************/
 char keypad_get_key(void) {
     return buffer_get();
 }

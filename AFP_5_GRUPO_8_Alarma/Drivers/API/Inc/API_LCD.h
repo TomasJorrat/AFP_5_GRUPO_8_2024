@@ -2,7 +2,8 @@
 #define LCD_I2C_H_
 
 #include "stm32f4xx_hal.h"
-
+#include "main.h"
+#include <stdbool.h>
 // Prototipos de funciones públicas
 void MX_I2C2_Init(void);
 
