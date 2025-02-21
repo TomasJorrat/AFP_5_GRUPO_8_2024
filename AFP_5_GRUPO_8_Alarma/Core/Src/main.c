@@ -88,10 +88,6 @@ void IncorrectPassword();
 void HandleActiveAlarm(char key);
 void CheckSensors();
 void CheckAlarmDeactivation(char key);
-
-char BT_ReceiveMessage();
-void BT_SendMessage(char *message);
-void BT_Test();
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -124,10 +120,11 @@ int main(void)
   /* USER CODE BEGIN 2 */
   keypad_init();
   BT_Test(); 						// Enviar mensaje de prueba al HC-05
-  HAL_Delay(30);					// Delay bloqueante minimo necesario para que pueda recibir datos el integrado del LCD
+  HAL_Delay(35);					// Delay bloqueante minimo necesario para que pueda recibir datos el integrado del LCD
   lcd_init();
   DisplayMainMenu(); 				// Muestra el menu principal en la pantalla
   delayInit(&DelayGRAL_1,20000);
+  disableSensorInterrupts();  		// Deshabilitacion de interrupciones para los sensores.
   /* USER CODE END 2 */
  /******************************************************************************************************************/
   /* Infinite loop */
@@ -655,11 +652,10 @@ void ConfirmNewPassword() {
     DisplayMainMenu();
 }
 /*****************************************************************************************************************
- * @brief:
+ * @brief: Submenú "Más"
  * @param:
  * @retval:
 ******************************************************************************************************************/
-// Submenú "Más"
 void HandleSubMenu() {
     lcd_clear();
     lcd_set_cursor(0, 0);
@@ -718,22 +714,20 @@ void TestAlarm() {
 void CheckSensors(void) {
     if (alarmActivated) {
         // Verificar si se abre una puerta o ventana (sensor magnético)
-    	// El manejo de los sensores con interrupciones deberia ser unicamente cuando la alarma este activada, es decir,
-    	// la interrupcion tiene que darse por valida cuando este en modo activada...
-        bool doorOpened = (HAL_GPIO_ReadPin(GPIOA, Sensor_Magnetico_1_Pin) == GPIO_PIN_RESET);
+        bool doorOpened = (HAL_GPIO_ReadPin(GPIOE, Sensor_Magnetico_1_Pin) == GPIO_PIN_RESET);
         bool motionDetected = false;
 
         // Solo verificar el sensor PIR si está activado en "Sist Completo"
         if (includeMotionSensor) {
-            motionDetected = HAL_GPIO_ReadPin(GPIOA, Sensor_PIR_Pin);
+            motionDetected = HAL_GPIO_ReadPin(GPIOE, Sensor_PIR_Pin);
 
             // Filtro por software para evitar falsas detecciones
             //HAL_Delay(50);
             delayInit(&LCD_Muestro, 2000);
             while(!delayRead(&LCD_Muestro)){
-            	// Espacio para ejecutar tareas mientras muestra el mensaje anterior
+            	// Espacio para ejecutar tareas mientras espera
             }
-            if (HAL_GPIO_ReadPin(GPIOA, Sensor_PIR_Pin) != motionDetected) {
+            if (HAL_GPIO_ReadPin(GPIOE, Sensor_PIR_Pin) != motionDetected) {
                 motionDetected = false; // Ignorar si el estado cambió muy rápido
             }
         }
@@ -742,33 +736,6 @@ void CheckSensors(void) {
             AlarmTriggered();
         }
     }
-}
-/*****************************************************************************************************************
- * @brief: Enviar datos al HC-05
- * @param:
- * @retval:
-******************************************************************************************************************/
-void BT_SendMessage(char *message) {
-    HAL_UART_Transmit(&huart2, (uint8_t *)message, strlen(message), HAL_MAX_DELAY);
-}
-/*****************************************************************************************************************
- * @brief: Recibir datos desde el HC-05
- * @param:
- * @retval:
-******************************************************************************************************************/
-char BT_ReceiveMessage() {
-    char receivedChar;
-    HAL_UART_Receive(&huart2, (uint8_t *)&receivedChar, 1, HAL_MAX_DELAY);
-    return receivedChar;
-}
-/*****************************************************************************************************************
- * @brief: Para probar si el STM32 está enviando datos correctamente al módulo Bluetooth HC-05
- * @param:
- * @retval:
-******************************************************************************************************************/
-void BT_Test() {
-    char message[] = "✅ HC-05 conectado con STM32\r\n";
-    HAL_UART_Transmit(&huart2, (uint8_t *)message, strlen(message), HAL_MAX_DELAY);
 }
 /*****************************************************************************************************************
  * @brief:

@@ -7,5 +7,5 @@
 ../Drivers/API/Src/API_GPIO.c:201:6:enableKeypadInterrupts	8	static
 ../Drivers/API/Src/API_GPIO.c:212:6:disableKeypadInterrupts	8	static
 ../Drivers/API/Src/API_GPIO.c:223:6:enableSensorInterrupts	8	static
-../Drivers/API/Src/API_GPIO.c:232:6:disableSensorInterrupts	8	static
-../Drivers/API/Src/API_GPIO.c:242:6:HAL_GPIO_EXTI_Callback	16	static
+../Drivers/API/Src/API_GPIO.c:231:6:disableSensorInterrupts	8	static
+../Drivers/API/Src/API_GPIO.c:240:6:HAL_GPIO_EXTI_Callback	16	static

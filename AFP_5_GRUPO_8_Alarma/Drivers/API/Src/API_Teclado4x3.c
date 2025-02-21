@@ -64,7 +64,7 @@ void keypad_init(void) {
     GPIO_InitStruct.Pin = C1_PIN | C2_PIN | C3_PIN;
     GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
     GPIO_InitStruct.Pull = GPIO_PULLUP;
-    HAL_GPIO_Init(C_PORT, &GPIO_InitStruct);
+    HAL_GPIO_Init(C_PORT, &GPIO_InitStruct); // C_PORT = Puerto de Columnas correspondientes al puerto E (Confuso)
 
     // Configuración de los pines de fila como salidas push-pull
     GPIO_InitStruct.Pin = R1_PIN | R2_PIN | R3_PIN | R4_PIN;
@@ -148,17 +148,6 @@ void scan_keypad(void) {
         HAL_GPIO_WritePin(R_PORT, row_pins[row], GPIO_PIN_SET);
     }
 }
-/*****************************************************************************************************************
- * @brief: Manejo de interrupciones del teclado
- * @param recibe el pin gpio de las columnas
- * @retval void
-******************************************************************************************************************
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
-    if (delayRead(&debounce_delay)) { // Verifica el debounce antes de escanear
-        scan_keypad();
-    }
-}*/
-
 /*****************************************************************************************************************
  * @brief: Obtiene una tecla del buffer
  * @param void

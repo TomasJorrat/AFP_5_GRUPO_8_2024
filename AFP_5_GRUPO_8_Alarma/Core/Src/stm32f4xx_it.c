@@ -235,8 +235,6 @@ void EXTI9_5_IRQHandler(void)
 
   /* USER CODE END EXTI9_5_IRQn 0 */
   HAL_GPIO_EXTI_IRQHandler(C3_Pin);
-  HAL_GPIO_EXTI_IRQHandler(Sensor_PIR_Pin);
-  HAL_GPIO_EXTI_IRQHandler(Sensor_Magnetico_1_Pin);
   /* USER CODE BEGIN EXTI9_5_IRQn 1 */
 
   /* USER CODE END EXTI9_5_IRQn 1 */
@@ -267,6 +265,8 @@ void EXTI15_10_IRQHandler(void)
   HAL_GPIO_EXTI_IRQHandler(USER_Btn_Pin);
   HAL_GPIO_EXTI_IRQHandler(Sensor_Magnetico_2_Pin);
   HAL_GPIO_EXTI_IRQHandler(Sensor_Magnetico_3_Pin);
+  HAL_GPIO_EXTI_IRQHandler(Sensor_PIR_Pin);
+  HAL_GPIO_EXTI_IRQHandler(Sensor_Magnetico_1_Pin);
   /* USER CODE BEGIN EXTI15_10_IRQn 1 */
 
   /* USER CODE END EXTI15_10_IRQn 1 */

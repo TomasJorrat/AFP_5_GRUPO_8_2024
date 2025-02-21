@@ -23,5 +23,8 @@ void BT_RX(msj_t *Mx_RX);											//Recibir un mensaje
 void BT_TX_IT(const msj_t *Mx_TX);									//Transmitir utilizando interrupciones
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart);
 
+char BT_ReceiveMessage();
+void BT_SendMessage(char *message);
+void BT_Test();
 
 #endif /* API_INC_API_BT_H_ */

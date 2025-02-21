@@ -108,14 +108,14 @@ void MX_GPIO_Init(void)
 /* USER CODE BEGIN MX_GPIO_Init_1 */
 /* USER CODE END MX_GPIO_Init_1 */
   /* GPIO Ports Clock Enable */
-  __HAL_RCC_GPIOE_CLK_ENABLE();
-  __HAL_RCC_GPIOC_CLK_ENABLE();
-  __HAL_RCC_GPIOF_CLK_ENABLE();
-  __HAL_RCC_GPIOH_CLK_ENABLE();
-  __HAL_RCC_GPIOA_CLK_ENABLE();
-  __HAL_RCC_GPIOB_CLK_ENABLE();
-  __HAL_RCC_GPIOD_CLK_ENABLE();
-  __HAL_RCC_GPIOG_CLK_ENABLE();
+  __HAL_RCC_GPIOE_CLK_ENABLE(); // RCC Puerto E
+  __HAL_RCC_GPIOC_CLK_ENABLE();	// RCC Puerto C
+  __HAL_RCC_GPIOF_CLK_ENABLE();	// RCC Puerto F
+  __HAL_RCC_GPIOH_CLK_ENABLE(); // RCC Puerto H
+  __HAL_RCC_GPIOA_CLK_ENABLE();	// RCC Puerto A
+  __HAL_RCC_GPIOB_CLK_ENABLE(); // RCC Puerto B
+  __HAL_RCC_GPIOD_CLK_ENABLE();	// RCC Puerto D
+  __HAL_RCC_GPIOG_CLK_ENABLE();	// RCC Puerto G
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOE, R2_Pin|R1_Pin, GPIO_PIN_SET);
@@ -158,7 +158,7 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Pin = Sensor_PIR_Pin|Sensor_Magnetico_1_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
-  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
   /*Configure GPIO pins : LD1_Pin LD3_Pin LD2_Pin */
   GPIO_InitStruct.Pin = LD1_Pin|LD3_Pin|LD2_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
@@ -172,8 +172,8 @@ void MX_GPIO_Init(void)
   HAL_GPIO_Init(Sensor_Magnetico_2_GPIO_Port, &GPIO_InitStruct);
   /*Configure GPIO pin : Sensor_Magnetico_3_Pin */
   GPIO_InitStruct.Pin = Sensor_Magnetico_3_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(Sensor_Magnetico_3_GPIO_Port, &GPIO_InitStruct);
   /*Configure GPIO pin : USB_PowerSwitchOn_Pin */
   GPIO_InitStruct.Pin = USB_PowerSwitchOn_Pin;
@@ -221,8 +221,7 @@ void disableKeypadInterrupts(void) {
  * @retval: void
 ******************************************************************************************************************/
 void enableSensorInterrupts(void) {
-    HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);  // Habilita interrupciones para sensores magnéticos
-    HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);    // Habilita interrupciones para sensor PIR
+    HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 }
 /*****************************************************************************************************************
  * @brief: Deshabilita las interrupciones en los pines GPIOs correspondientes a los sensores.
@@ -231,7 +230,6 @@ void enableSensorInterrupts(void) {
 ******************************************************************************************************************/
 void disableSensorInterrupts(void) {
     HAL_NVIC_DisableIRQ(EXTI15_10_IRQn);
-    HAL_NVIC_DisableIRQ(EXTI9_5_IRQn);
 }
 /*****************************************************************************************************************
  * @brief: Callback de interrupción de los pines GPIO.

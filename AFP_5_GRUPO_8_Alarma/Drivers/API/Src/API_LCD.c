@@ -14,8 +14,12 @@ static void lcd_send_command(uint8_t cmd);
 static void lcd_send_data(uint8_t data);
 static void lcd_send(uint8_t value, uint8_t mode);
 static void lcd_write_nibble(uint8_t nibble);
-
-void lcd_init() {
+/*****************************************************************************************************************
+ * @brief: Inicializar la pantalla LCD
+ * @param void
+ * @retval void
+******************************************************************************************************************/
+void lcd_init(void) {
     HAL_Delay(50); // Tiempo de inicio según especificación HD44780
     lcd_send_command(0x30);
     HAL_Delay(5);
@@ -31,42 +35,77 @@ void lcd_init() {
     lcd_send_command(0x06); // Configurar modo de entrada
     lcd_send_command(0x0C); // Encender display, cursor apagado
 }
-
-void lcd_clear() {
+/*****************************************************************************************************************
+ * @brief: Limpiar la pantalla LCD
+ * @param void
+ * @retval void
+******************************************************************************************************************/
+void lcd_clear(void) {
     lcd_send_command(0x01); // Limpiar pantalla
     HAL_Delay(2);
 }
-
+/*****************************************************************************************************************
+ * @brief: Posicionar el cursor en la pantalla LCD
+ * @param row: Fila de la pantalla
+ * @param col: Columna de la pantalla
+ * @retval void
+******************************************************************************************************************/
 void lcd_set_cursor(uint8_t row, uint8_t col) {
     uint8_t addresses[] = {0x80, 0xC0}; // Dirección DDRAM para la primera y segunda línea
     lcd_send_command(addresses[row] + col);
 }
-
+/*****************************************************************************************************************
+ * @brief: Imprimir un texto en la pantalla LCD
+ * @param str: Cadena de caracteres a imprimir
+ * @retval void
+******************************************************************************************************************/
 void lcd_print(const char *str) {
     while (*str) {
         lcd_send_data((uint8_t)*str++);
     }
 }
-
+/*****************************************************************************************************************
+ * @brief: Imprimir un número en la pantalla LCD
+ * @param num: Número entero a imprimir
+ * @retval void
+******************************************************************************************************************/
 void lcd_print_num(int num) {
     char buffer[16];
     snprintf(buffer, sizeof(buffer), "%d", num);
     lcd_print(buffer);
 }
+/*****************************************************************************************************************
+ * @brief: Enviar un comando a la pantalla LCD
+ * @param cmd: Comando a enviar // entero de 8bits sin signo
+ * @retval void
+******************************************************************************************************************/
 static void lcd_send_command(uint8_t cmd) {
     lcd_send(cmd, 0x00);
 }
-
+/*****************************************************************************************************************
+ * @brief: Enviar un dato a la pantalla LCD
+ * @param data: Dato a enviar // Entero sin signo de 8bits
+ * @retval void
+******************************************************************************************************************/
 static void lcd_send_data(uint8_t data) {
     lcd_send(data, 0x01);
 }
-
+/*****************************************************************************************************************
+ * @brief: Enviar datos a la pantalla LCD
+ * @param value: Valor a enviar
+ * @param mode: Modo de operación (comando o datos)
+ * @retval void
+******************************************************************************************************************/
 static void lcd_send(uint8_t value, uint8_t mode) {
     lcd_control = lcd_backlight | mode;
     lcd_write_nibble(value & 0xF0);
     lcd_write_nibble((value << 4) & 0xF0);
 }
-
+/*****************************************************************************************************************
+ * @brief: Escribir un nibble en la pantalla LCD
+ * @param nibble: Parte alta o baja del byte a enviar
+ * @retval void
+******************************************************************************************************************/
 static void lcd_write_nibble(uint8_t nibble) {
     uint8_t data = nibble | lcd_control | 0x04; // Habilitar bit Enable
     HAL_I2C_Master_Transmit(&hi2c2, LCD_ADDR << 1, &data, 1, HAL_MAX_DELAY);
@@ -74,12 +113,12 @@ static void lcd_write_nibble(uint8_t nibble) {
     HAL_I2C_Master_Transmit(&hi2c2, LCD_ADDR << 1, &data, 1, HAL_MAX_DELAY);
 }
 
-
-/**
+/*****************************************************************************************************************
   * @brief I2C2 Initialization Function
   * @param None
   * @retval None
   */
+/******************************************************************************************************************/
 void MX_I2C2_Init(void)
 {
 
