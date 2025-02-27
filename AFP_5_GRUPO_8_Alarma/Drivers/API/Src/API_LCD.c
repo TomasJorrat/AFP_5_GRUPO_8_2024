@@ -1,9 +1,11 @@
-#include "API_LCD.h"
+#include <API_LCD.h>
 #include "stm32f4xx_hal.h"
 #include <stdio.h>
 #include <string.h>
-I2C_HandleTypeDef hi2c2; // Cambia si configuras otro periférico en CubeMX
-#define LCD_ADDR 0x27         // Dirección I2C de la pantalla LCD (modifícala según tu dispositivo)
+#include <stdio.h>
+
+extern I2C_HandleTypeDef hi2c2; 	// Cambia si configuras otro periférico en CubeMX
+#define LCD_ADDR 0x27         		// Dirección I2C de la pantalla LCD (modifícala según tu dispositivo)
 
 // Variables internas
 static uint8_t lcd_backlight = 0x08;
@@ -14,12 +16,13 @@ static void lcd_send_command(uint8_t cmd);
 static void lcd_send_data(uint8_t data);
 static void lcd_send(uint8_t value, uint8_t mode);
 static void lcd_write_nibble(uint8_t nibble);
+
 /*****************************************************************************************************************
  * @brief: Inicializar la pantalla LCD
  * @param void
  * @retval void
 ******************************************************************************************************************/
-void lcd_init(void) {
+void lcd_init() {
     HAL_Delay(50); // Tiempo de inicio según especificación HD44780
     lcd_send_command(0x30);
     HAL_Delay(5);
@@ -35,15 +38,17 @@ void lcd_init(void) {
     lcd_send_command(0x06); // Configurar modo de entrada
     lcd_send_command(0x0C); // Encender display, cursor apagado
 }
+
 /*****************************************************************************************************************
  * @brief: Limpiar la pantalla LCD
  * @param void
  * @retval void
 ******************************************************************************************************************/
-void lcd_clear(void) {
+void lcd_clear() {
     lcd_send_command(0x01); // Limpiar pantalla
     HAL_Delay(2);
 }
+
 /*****************************************************************************************************************
  * @brief: Posicionar el cursor en la pantalla LCD
  * @param row: Fila de la pantalla
@@ -54,6 +59,7 @@ void lcd_set_cursor(uint8_t row, uint8_t col) {
     uint8_t addresses[] = {0x80, 0xC0}; // Dirección DDRAM para la primera y segunda línea
     lcd_send_command(addresses[row] + col);
 }
+
 /*****************************************************************************************************************
  * @brief: Imprimir un texto en la pantalla LCD
  * @param str: Cadena de caracteres a imprimir
@@ -64,6 +70,7 @@ void lcd_print(const char *str) {
         lcd_send_data((uint8_t)*str++);
     }
 }
+
 /*****************************************************************************************************************
  * @brief: Imprimir un número en la pantalla LCD
  * @param num: Número entero a imprimir
@@ -74,6 +81,7 @@ void lcd_print_num(int num) {
     snprintf(buffer, sizeof(buffer), "%d", num);
     lcd_print(buffer);
 }
+
 /*****************************************************************************************************************
  * @brief: Enviar un comando a la pantalla LCD
  * @param cmd: Comando a enviar // entero de 8bits sin signo
@@ -82,6 +90,7 @@ void lcd_print_num(int num) {
 static void lcd_send_command(uint8_t cmd) {
     lcd_send(cmd, 0x00);
 }
+
 /*****************************************************************************************************************
  * @brief: Enviar un dato a la pantalla LCD
  * @param data: Dato a enviar // Entero sin signo de 8bits
@@ -90,6 +99,7 @@ static void lcd_send_command(uint8_t cmd) {
 static void lcd_send_data(uint8_t data) {
     lcd_send(data, 0x01);
 }
+
 /*****************************************************************************************************************
  * @brief: Enviar datos a la pantalla LCD
  * @param value: Valor a enviar
@@ -101,6 +111,7 @@ static void lcd_send(uint8_t value, uint8_t mode) {
     lcd_write_nibble(value & 0xF0);
     lcd_write_nibble((value << 4) & 0xF0);
 }
+
 /*****************************************************************************************************************
  * @brief: Escribir un nibble en la pantalla LCD
  * @param nibble: Parte alta o baja del byte a enviar

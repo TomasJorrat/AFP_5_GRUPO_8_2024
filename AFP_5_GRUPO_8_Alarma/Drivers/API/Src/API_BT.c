@@ -2,8 +2,9 @@
  * API_BT.c
  *
  *  Created on: Jan 31, 2025
- *      Author: tomas
+ *      Author: Tomas Jorrat
  */
+
 /*Includes*/
 #include "main.h"
 #include "API_BT.h"
@@ -13,7 +14,7 @@
 msj_t Mx_TX[100];		//Mensaje a transmitir
 msj_t Mx_RX[100];		//Mensaje recibido
 
-UART_HandleTypeDef huart2;
+extern UART_HandleTypeDef huart2;
 
 /* Function Definition *******************************/
 
@@ -24,9 +25,14 @@ UART_HandleTypeDef huart2;
 ******************************************************************************************************************/
 void MX_USART2_UART_Init(void)
 {
+
   /* USER CODE BEGIN USART2_Init 0 */
 
   /* USER CODE END USART2_Init 0 */
+
+  /* USER CODE BEGIN USART2_Init 1 */
+
+  /* USER CODE END USART2_Init 1 */
   huart2.Instance = USART2;
   huart2.Init.BaudRate = 9600;
   huart2.Init.WordLength = UART_WORDLENGTH_8B;
@@ -39,7 +45,45 @@ void MX_USART2_UART_Init(void)
   {
     Error_Handler();
   }
+  /* USER CODE BEGIN USART2_Init 2 */
+
+  /* USER CODE END USART2_Init 2 */
+
 }
+
+
+/*****************************************************************************************************************
+ * @brief: 	Enviar un mensaje a HC-05
+ * @param:	char message (cadena de carecteres)
+ * @retval:	void
+******************************************************************************************************************/
+
+void BT_SendMessage(char *message) {
+    HAL_UART_Transmit(&huart2, (uint8_t *)message, strlen(message), HAL_MAX_DELAY);
+}
+
+/*****************************************************************************************************************
+ * @brief: Recibir datos desde el HC-05
+ * @param: void
+ * @retval: devuelve el dato recibido por uart tipo char
+******************************************************************************************************************/
+char BT_ReceiveMessage() {
+    char receivedChar;
+    HAL_UART_Receive(&huart2, (uint8_t *)&receivedChar, 1, HAL_MAX_DELAY);
+    return receivedChar;
+}
+
+/*****************************************************************************************************************
+ * @brief: Para probar si el STM32 está enviando datos correctamente al módulo Bluetooth HC-05
+ * @param: void
+ * @retval: void
+******************************************************************************************************************/
+void BT_Test() {
+    char message[] = "✅ HC-05 conectado con STM32\r\n";
+    HAL_UART_Transmit(&huart2, (uint8_t *)message, strlen(message), HAL_MAX_DELAY);
+}
+
+
 
 /*****************************************************************************************************************
  * @brief Enviar un mensaje por medio de USART2
@@ -87,30 +131,5 @@ void BT_RX(msj_t *Mx_RX)
 {
 	HAL_UART_Receive(&huart2, Mx_RX, sizeof(Mx_RX), HAL_MAX_DELAY);
 }
-/*****************************************************************************************************************
- * @brief: 	Enviar datos al HC-05
- * @param:
- * @retval:	void
-******************************************************************************************************************/
-void BT_SendMessage(char *message) {
-    HAL_UART_Transmit(&huart2, (uint8_t *)message, strlen(message), HAL_MAX_DELAY);
-}
-/*****************************************************************************************************************
- * @brief: Recibir datos desde el HC-05
- * @param: void
- * @retval: devuelve el dato recibido por uart tipo char
-******************************************************************************************************************/
-char BT_ReceiveMessage() {
-    char receivedChar;
-    HAL_UART_Receive(&huart2, (uint8_t *)&receivedChar, 1, HAL_MAX_DELAY);
-    return receivedChar;
-}
-/*****************************************************************************************************************
- * @brief: Para probar si el STM32 está enviando datos correctamente al módulo Bluetooth HC-05
- * @param: void
- * @retval: void
-******************************************************************************************************************/
-void BT_Test() {
-    char message[] = "✅ HC-05 conectado con STM32\r\n";
-    HAL_UART_Transmit(&huart2, (uint8_t *)message, strlen(message), HAL_MAX_DELAY);
-}
+
+
