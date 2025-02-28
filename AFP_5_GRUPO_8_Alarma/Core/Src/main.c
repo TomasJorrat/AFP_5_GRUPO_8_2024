@@ -62,17 +62,17 @@ I2C_HandleTypeDef hi2c2;
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
-char currentPassword[5] = "1234";  							// Contraseña inicial por defecto
-char newPassword[5];               							// Para almacenar la nueva contraseña
-char key;
+char currentPassword[5] = "1234";  								// Almacena la contraseña actual (Por defecto 1234)
+char newPassword[5];               								// Almacena la contraseña nueva
+char key;														// Almacena el valor de la tecla presionada
 MenuState currentState = MAIN_MENU;
-bool includeMotionSensor = false;
-bool MotionDetected_1, MotionDetected_2, MotionDectected_PIR;
-bool alarmActivated = false;   								// Estado de la alarma
-bool countdownStarted = false; 								// Temporizador interno
+bool includeMotionSensor = false;								// Inlcluye o no el sensor PIR
+bool MotionDetected_1, MotionDetected_2, MotionDectected_PIR;	// Estado de los sensores
+bool alarmActivated = false;   									// Estado de la alarma
+bool countdownStarted = false; 									// Temporizador interno
 char inputBuffer[5];
 uint8_t inputIndex = 0;
-uint32_t startTime = 0;        								// Momento en que inicia el temporizador interno
+uint32_t startTime = 0;        									// Momento en que inicia el temporizador interno
 
 delay_t DelayGRAL_1;					// Variables de retardos generales para uso independiente
 delay_t DelayGRAL_2;
@@ -83,23 +83,22 @@ delay_t Delay_Sirena;
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
-void DisplayMainMenu();
-void HandleMainMenuInput(char key);
-void DisplayAlarmMenu();
-void HandleAlarmMenuInput(char key);
-void RequestPassword(void (*onSuccess)(void), void (*onFailure)(void));
-void ActivateAlarm();
-void DeactivateAlarm();
-void DisplayChangePassMenu();
-void ConfirmNewPassword();
-void HandleSubMenu();
-void TestAlarm();
-extern void AlarmTriggered();
-void IncorrectPassword();
-void HandleActiveAlarm(char key);
-void CheckSensors();
-void CheckAlarmDeactivation(char key);
-
+void DisplayMainMenu();														// Menu Principal
+void HandleMainMenuInput(char key);											// Manejo del menu principal
+void DisplayAlarmMenu();													// Menu de activacion de alarma
+void HandleAlarmMenuInput(char key);										// Manejo del menu de activacion de alarma
+void RequestPassword(void (*onSuccess)(void), void (*onFailure)(void));		// Pedir la contraseña
+void ActivateAlarm();														// Secuencia de activacion
+void DeactivateAlarm();														// Secuencia de desactivacion
+void DisplayChangePassMenu();												// Menu de cambio de contraseña
+void ConfirmNewPassword();													// Contraseña nueva
+void HandleSubMenu();														// Submenu del principal
+void TestAlarm();															// Prueba de alarma
+extern void AlarmTriggered();												// Disparo de alarma
+void IncorrectPassword();													// Contraseña incorrecta
+void HandleActiveAlarm(char key);											// Manejo de la activacion de la alarma
+void CheckSensors();														// Control del estado de sensores
+void CheckAlarmDeactivation(char key);										// Control para desactivar la alarma
 
 
 /* USER CODE END PFP */
@@ -129,9 +128,7 @@ int main(void)
   MX_GPIO_Init();
   MX_USART2_UART_Init();
   keypad_init();
-
   BT_Test();
-
   MX_I2C2_Init();
   HAL_Delay(30);
   lcd_init();
@@ -148,12 +145,12 @@ int main(void)
   /* Initialize all configured peripherals */
 
   /* USER CODE BEGIN 2 */
+  HAL_GPIO_WritePin(Led_Encendido_GPIO_Port, Led_Encendido_Pin, GPIO_PIN_SET);
   DisplayMainMenu();
   delayInit(&DelayGRAL_1,20000);
   delayInit(&DelayGRAL_2,10000);
   delayInit(&LCD_Muestro,2000);
   delayInit(&Delay_Sirena,500);
-
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -247,10 +244,12 @@ void HandleAlarmMenuInput(char key) {
     switch (key) {
         case '1':  // Modo "Sistema Completo"
             includeMotionSensor = true;
+            HAL_GPIO_WritePin(Led_Estado_GPIO_Port, Led_Estado_Pin, GPIO_PIN_RESET);
             RequestPassword(ActivateAlarm, DisplayAlarmMenu);
             break;
         case '2':  // Modo "Sin Sensor de Movimiento"
             includeMotionSensor = false;
+            HAL_GPIO_WritePin(Led_Estado_GPIO_Port, Led_Estado_Pin, GPIO_PIN_SET);
             RequestPassword(ActivateAlarm, DisplayAlarmMenu);
             break;
         case '*':  // Si el usuario presiona "*", volver al menú principal
@@ -280,12 +279,10 @@ void RequestPassword(void (*onSuccess)(void), void (*onFailure)(void)) {
         memset(inputBuffer, 0, sizeof(inputBuffer));		// Re-incializa la variable en [0000]
         inputIndex = 0;
 
-
-        uint32_t startTime = HAL_GetTick();  // Guardar el tiempo de inicio
+        uint32_t startTime = HAL_GetTick();  				// Guardar el tiempo de inicio
 
         while (1) {
-
-            if (HAL_GetTick() - startTime > 20000) { // Si pasan más de 20 segundos sin entrada
+            if (HAL_GetTick() - startTime > 20000) { 		// Si pasan más de 20 segundos sin entrada
                 lcd_clear();
                 lcd_set_cursor(0, 0);
                 lcd_print("Tiempo agotado");
@@ -297,12 +294,8 @@ void RequestPassword(void (*onSuccess)(void), void (*onFailure)(void)) {
                 DisplayMainMenu();  						// Volver al menú principal
                 return;
             }
-
             key = keypad_getkey();
-
-
             if (key != '\0') {
-
                 if (key == '*') {  							// Si presiona "*", vuelve al menú principal
                     lcd_clear();
                     lcd_set_cursor(0, 0);
@@ -315,7 +308,6 @@ void RequestPassword(void (*onSuccess)(void), void (*onFailure)(void)) {
                     DisplayMainMenu();  					// Volver al menú principal
                     return;
                 }
-
                 if (key >= '0' && key <= '9' && inputIndex < 4) {
                     inputBuffer[inputIndex++] = key;
                     lcd_set_cursor(1, 10 + inputIndex - 1);
@@ -460,7 +452,6 @@ void IncorrectPassword(void) {
     lcd_print("Incorrecta");
     while(!delayRead(&LCD_Muestro)){ 	// Mostrar mensaje durante 2 segundos
 
-
     // Iniciar temporizador interno si aún no está activo
     if (!countdownStarted) {
         countdownStarted = true;
@@ -505,6 +496,7 @@ void AlarmTriggered(void) {
     	if (HAL_GetTick() - lastToggleTime >= 500) {
     	    lastToggleTime = HAL_GetTick();
     	    HAL_GPIO_TogglePin(Sirena_GPIO_Port, Sirena_Pin);
+    	    HAL_GPIO_TogglePin(Led_Alerta_GPIO_Port, Led_Alerta_Pin);
     	}
     	/*if (delayRead(&Delay_Sirena)){
     		HAL_GPIO_TogglePin(Sirena_GPIO_Port, Sirena_Pin);
@@ -519,6 +511,7 @@ void AlarmTriggered(void) {
 
     // Apagar el buzzer cuando la alarma se desactiva
     HAL_GPIO_WritePin(Sirena_GPIO_Port, Sirena_Pin, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(Led_Alerta_GPIO_Port, Led_Alerta_Pin, GPIO_PIN_RESET);
 }
 
 /*****************************************************************************************************************
@@ -603,7 +596,6 @@ void ConfirmNewPassword(){
                 lcd_print("*.Si   #.No");
 
                 uint32_t confirmStart = HAL_GetTick();
-
 
                 while (HAL_GetTick() - confirmStart < 10000) {  			// Espera 10 segundos para confirmar
                     char confirmKey = keypad_getkey();
