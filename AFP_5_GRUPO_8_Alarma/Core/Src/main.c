@@ -100,6 +100,8 @@ void HandleActiveAlarm(char key);
 void CheckSensors();
 void CheckAlarmDeactivation(char key);
 
+
+
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -127,6 +129,7 @@ int main(void)
   MX_GPIO_Init();
   MX_USART2_UART_Init();
   keypad_init();
+
   BT_Test();
 
   MX_I2C2_Init();
@@ -136,7 +139,7 @@ int main(void)
   /* USER CODE END Init */
 
   /* Configure the system clock */
-  SystemClock_Config();
+
 
   /* USER CODE BEGIN SysInit */
 
@@ -150,6 +153,7 @@ int main(void)
   delayInit(&DelayGRAL_2,10000);
   delayInit(&LCD_Muestro,2000);
   delayInit(&Delay_Sirena,500);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -181,48 +185,8 @@ int main(void)
   * @brief System Clock Configuration
   * @retval None
   */
-void SystemClock_Config(void)
-{
-  RCC_OscInitTypeDef RCC_OscInitStruct = {0};
-  RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
 
-  /** Configure the main internal regulator output voltage
-  */
-  __HAL_RCC_PWR_CLK_ENABLE();
-  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
-
-  /** Initializes the RCC Oscillators according to the specified parameters
-  * in the RCC_OscInitTypeDef structure.
-  */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
-  RCC_OscInitStruct.HSEState = RCC_HSE_BYPASS;
-  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
-  RCC_OscInitStruct.PLL.PLLM = 8;
-  RCC_OscInitStruct.PLL.PLLN = 384;
-  RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV4;
-  RCC_OscInitStruct.PLL.PLLQ = 8;
-  RCC_OscInitStruct.PLL.PLLR = 2;
-  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
-  {
-    Error_Handler();
-  }
-
-  /** Initializes the CPU, AHB and APB buses clocks
-  */
-  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
-                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
-  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
-  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
-  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
-
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_3) != HAL_OK)
-  {
-    Error_Handler();
-  }
-}
-
+// AQUI
 
 
 
@@ -316,10 +280,12 @@ void RequestPassword(void (*onSuccess)(void), void (*onFailure)(void)) {
         memset(inputBuffer, 0, sizeof(inputBuffer));		// Re-incializa la variable en [0000]
         inputIndex = 0;
 
-        delayInit(&DelayGRAL_1, 20000);
+
+        uint32_t startTime = HAL_GetTick();  // Guardar el tiempo de inicio
+
         while (1) {
 
-            if (delayRead(&DelayGRAL_1)) { 					// Si pasan más de 20 segundos sin entrada
+            if (HAL_GetTick() - startTime > 20000) { // Si pasan más de 20 segundos sin entrada
                 lcd_clear();
                 lcd_set_cursor(0, 0);
                 lcd_print("Tiempo agotado");
@@ -494,14 +460,14 @@ void IncorrectPassword(void) {
     lcd_print("Incorrecta");
     while(!delayRead(&LCD_Muestro)){ 	// Mostrar mensaje durante 2 segundos
 
-    /*
+
     // Iniciar temporizador interno si aún no está activo
     if (!countdownStarted) {
         countdownStarted = true;
         startTime = HAL_GetTick(); // Guardar tiempo actual
     }
-    */
-    // Iniciar temporizador de 31 segundos si aún no está activo
+
+    /*// Iniciar temporizador de 31 segundos si aún no está activo
     	static delay_t countdownDelay;  // Variable estática para mantener el estado del temporizador
     	static bool countdownStarted = false;
 
@@ -509,6 +475,7 @@ void IncorrectPassword(void) {
     		countdownStarted = true;
     		delayInit(&countdownDelay, 31000); // Iniciar temporizador de 31 segundos
     	}
+    	*/
     }
     // Solicitar nuevamente la contraseña
     lcd_clear();
@@ -531,16 +498,17 @@ void AlarmTriggered(void) {
     lcd_print("Ingrese clave");
 
     BT_SendMessage("⚠️ Alarma Disparada! \r\n"); // Enviar mensaje por Bluetooth
+    uint32_t lastToggleTime = HAL_GetTick();  // Tiempo de referencia para el buzzer
 
     while (alarmActivated) {
-     /*   // Alternar el buzzer cada 500 ms sin bloquear el sistema
+       // Alternar el buzzer cada 500 ms sin bloquear el sistema
     	if (HAL_GetTick() - lastToggleTime >= 500) {
     	    lastToggleTime = HAL_GetTick();
     	    HAL_GPIO_TogglePin(Sirena_GPIO_Port, Sirena_Pin);
-    	}*/
-    	if (delayRead(&Delay_Sirena)){
-    		HAL_GPIO_TogglePin(Sirena_GPIO_Port, Sirena_Pin);
     	}
+    	/*if (delayRead(&Delay_Sirena)){
+    		HAL_GPIO_TogglePin(Sirena_GPIO_Port, Sirena_Pin);
+    	}*/
 
         // Permitir que el usuario intente apagar la alarma
         key = keypad_getkey();
@@ -565,11 +533,12 @@ void DisplayChangePassMenu() {
     lcd_set_cursor(1, 0);
     lcd_print("Actual:");
 
+    uint32_t startTime = HAL_GetTick();  // Guardar el tiempo actual
     while (1) {  // Bucle para capturar la tecla antes de solicitar la contraseña
         key = keypad_getkey();
 
         //  Si pasan más de 20 segundos sin tocar una tecla, vuelve al menú principal
-        if (delayRead(&DelayGRAL_1)){
+        if (HAL_GetTick() - startTime > 20000){
             lcd_clear();
             lcd_set_cursor(0, 0);
             lcd_print("Tiempo Expirado");
@@ -613,8 +582,9 @@ void ConfirmNewPassword(){
 
     memset(inputBuffer, 0, sizeof(inputBuffer));
     inputIndex = 0;
+    uint32_t startTime = HAL_GetTick();  // Tiempo de inicio para evitar bucles infinitos
 
-    while (delayRead(&DelayGRAL_1)) {  // Tiempo límite de 20 segundos
+    while (HAL_GetTick() - startTime < 20000) {  // Tiempo límite de 20 segundos
         key = keypad_getkey();
 
         if (key >= '0' && key <= '9' && inputIndex < 4) {
@@ -632,7 +602,10 @@ void ConfirmNewPassword(){
                 lcd_set_cursor(1, 0);
                 lcd_print("*.Si   #.No");
 
-                while (delayRead(&DelayGRAL_2)) {  			// Espera 10 segundos para confirmar
+                uint32_t confirmStart = HAL_GetTick();
+
+
+                while (HAL_GetTick() - confirmStart < 10000) {  			// Espera 10 segundos para confirmar
                     char confirmKey = keypad_getkey();
                     if (confirmKey == '*') {
                         strcpy(currentPassword, newPassword);
@@ -767,21 +740,22 @@ void CheckSensors(void) {
  * @retval:
 ******************************************************************************************************************/
 void CheckAlarmDeactivation(char key) {
-	static delay_t countdownDelay;
+	//static delay_t countdownDelay;
 	static bool countdownStarted = false;
 
 	if (!countdownStarted) {
 		countdownStarted = true;
-		delayInit(&countdownDelay, 31000);  // Iniciar temporizador de 31 segundos
+		startTime = HAL_GetTick(); // Iniciar temporizador de 31 segundos
 	}
 
 	RequestPassword(DeactivateAlarm, IncorrectPassword);
 
 	// Si pasan 31 segundos sin ingresar la clave correcta, activar la alarma
-	if (delayRead(&countdownDelay)) {
+	if (HAL_GetTick() - startTime >= 31000) {
 		AlarmTriggered();
 	}
 }
+
 
 /* USER CODE END 4 */
 
